@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -112,6 +113,10 @@ func (h *ProjectHandler) handleCreate(w http.ResponseWriter, r *http.Request) {
 
 	project, err := h.service.CreateProject(r.Context(), req, userID, "")
 	if err != nil {
+		if errors.Is(err, service.ErrInvalidRepositoryURL) {
+			httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
 		httpx.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to create project"})
 		return
 	}
@@ -140,6 +145,10 @@ func (h *ProjectHandler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == service.ErrProjectNotFound {
 			httpx.WriteJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, service.ErrInvalidRepositoryURL) {
+			httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
 		httpx.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to update project"})
@@ -181,6 +190,10 @@ func toProjectResp(p *model.Project) dto.ProjectResp {
 	return dto.ProjectResp{
 		ID:                  p.ID,
 		Name:                p.Name,
+		Provider:            p.Provider,
+		RepositoryURL:       p.RepositoryURL,
+		Owner:               p.Owner,
+		Repo:                p.Repo,
 		Description:         p.Description,
 		Status:              p.Status,
 		CreaterID:           p.CreaterID,

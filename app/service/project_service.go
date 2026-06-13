@@ -6,11 +6,15 @@ import (
 	"fmt"
 
 	"github.com/ray-d-song/merc/app/dto"
+	"github.com/ray-d-song/merc/app/githubrepo"
 	"github.com/ray-d-song/merc/app/model"
 	"github.com/ray-d-song/merc/app/repo"
 )
 
-var ErrProjectNotFound = errors.New("project not found")
+var (
+	ErrProjectNotFound      = errors.New("project not found")
+	ErrInvalidRepositoryURL = errors.New("invalid repository URL")
+)
 
 type ProjectService struct {
 	repo repo.ProjectRepository
@@ -21,8 +25,20 @@ func NewProjectService(repo repo.ProjectRepository) *ProjectService {
 }
 
 func (s *ProjectService) CreateProject(ctx context.Context, req dto.CreateProjectReq, creatorID uint, creatorName string) (*model.Project, error) {
+	repository, err := githubrepo.Parse(req.RepositoryURL)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidRepositoryURL, err)
+	}
+	name := req.Name
+	if name == "" {
+		name = repository.Repo
+	}
 	project := &model.Project{
-		Name:            req.Name,
+		Name:            name,
+		Provider:        "github",
+		RepositoryURL:   repository.URL,
+		Owner:           repository.Owner,
+		Repo:            repository.Repo,
 		Description:     req.Description,
 		Status:          1,
 		CreaterID:       creatorID,
@@ -58,6 +74,16 @@ func (s *ProjectService) UpdateProject(ctx context.Context, req dto.UpdateProjec
 		return nil, ErrProjectNotFound
 	}
 
+	if req.RepositoryURL != "" {
+		repository, err := githubrepo.Parse(req.RepositoryURL)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrInvalidRepositoryURL, err)
+		}
+		project.RepositoryURL = repository.URL
+		project.Owner = repository.Owner
+		project.Repo = repository.Repo
+		project.Provider = "github"
+	}
 	project.Name = req.Name
 	project.Description = req.Description
 	project.Status = req.Status
