@@ -97,7 +97,7 @@ func runAgentOnly(args []string) {
 	_ = flags.Parse(args)
 	applyAgentFlagOverrides(*serverURL, *token)
 	if *dataDir != "" {
-		_ = os.Setenv("AGENT_DATA_DIR", *dataDir)
+		_ = os.Setenv("MERC_AGENT_DATA_DIR", *dataDir)
 	}
 
 	v, err := config.NewViper()
@@ -128,10 +128,10 @@ func firstArg() string {
 
 func applyAgentFlagOverrides(serverURL, token string) {
 	if serverURL != "" {
-		_ = os.Setenv("AGENT_SERVER_URL", serverURL)
+		_ = os.Setenv("MERC_AGENT_SERVER_URL", serverURL)
 	}
 	if token != "" {
-		_ = os.Setenv("AGENT_TOKEN", token)
+		_ = os.Setenv("MERC_AGENT_TOKEN", token)
 	}
 }
 

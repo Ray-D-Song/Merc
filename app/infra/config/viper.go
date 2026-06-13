@@ -30,7 +30,7 @@ type ServerConfig struct {
 	FrontendDomain string `mapstructure:"frontend_domain"`
 }
 
-// DatabaseConfig holds datasource configuration derived from DATABASE_* envs.
+// DatabaseConfig holds datasource configuration derived from MERC_DATABASE_* envs.
 type DatabaseConfig struct {
 	Type            string        `mapstructure:"type"`
 	URL             string        `mapstructure:"url"`
@@ -39,7 +39,7 @@ type DatabaseConfig struct {
 	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
 }
 
-// SessionConfig stores cookie/session information from SESSION_* envs.
+// SessionConfig stores cookie/session information from MERC_SESSION_* envs.
 type SessionConfig struct {
 	Secret         string `mapstructure:"secret"`
 	MaxAgeMS       int    `mapstructure:"max_age"`
@@ -90,7 +90,7 @@ func NewViper() (*viper.Viper, error) {
 		return nil, err
 	}
 
-	configFile := os.Getenv("CONFIG_FILE")
+	configFile := os.Getenv("MERC_CONFIG_FILE")
 	if configFile != "" {
 		v.SetConfigFile(configFile)
 	} else {
@@ -161,27 +161,27 @@ func setDefaults(v *viper.Viper) {
 
 func bindEnvVariables(v *viper.Viper) error {
 	envBindings := map[string]string{
-		"server.host":              "HOST",
-		"server.port":              "PORT",
-		"server.frontend_domain":   "FRONTEND_DOMAIN",
-		"database.type":            "DATABASE_TYPE",
-		"database.url":             "DATABASE_URL",
-		"session.secret":           "SESSION_SECRET",
-		"session.max_age":          "SESSION_MAX_AGE",
-		"session.cookie_secure":    "SESSION_COOKIE_SECURE",
-		"session.cookie_same_site": "SESSION_COOKIE_SAME_SITE",
-		"node.name":                "NODE_NAME",
-		"node.node_key":            "NODE_KEY",
-		"agent.server_url":         "AGENT_SERVER_URL",
-		"agent.token":              "AGENT_TOKEN",
-		"agent.data_dir":           "AGENT_DATA_DIR",
-		"agent.heartbeat_interval": "AGENT_HEARTBEAT_INTERVAL",
-		"agent.poll_interval":      "AGENT_POLL_INTERVAL",
-		"runner.default_version":   "RUNNER_DEFAULT_VERSION",
-		"aws.access_key_id":        "AWS_ACCESS_KEY_ID",
-		"aws.secret_access_key":    "AWS_SECRET_ACCESS_KEY",
-		"aws.region":               "AWS_REGION",
-		"aws.s3_bucket":            "AWS_S3_BUCKET",
+		"server.host":              "MERC_HOST",
+		"server.port":              "MERC_PORT",
+		"server.frontend_domain":   "MERC_FRONTEND_DOMAIN",
+		"database.type":            "MERC_DATABASE_TYPE",
+		"database.url":             "MERC_DATABASE_URL",
+		"session.secret":           "MERC_SESSION_SECRET",
+		"session.max_age":          "MERC_SESSION_MAX_AGE",
+		"session.cookie_secure":    "MERC_SESSION_COOKIE_SECURE",
+		"session.cookie_same_site": "MERC_SESSION_COOKIE_SAME_SITE",
+		"node.name":                "MERC_NODE_NAME",
+		"node.node_key":            "MERC_NODE_KEY",
+		"agent.server_url":         "MERC_AGENT_SERVER_URL",
+		"agent.token":              "MERC_AGENT_TOKEN",
+		"agent.data_dir":           "MERC_AGENT_DATA_DIR",
+		"agent.heartbeat_interval": "MERC_AGENT_HEARTBEAT_INTERVAL",
+		"agent.poll_interval":      "MERC_AGENT_POLL_INTERVAL",
+		"runner.default_version":   "MERC_RUNNER_DEFAULT_VERSION",
+		"aws.access_key_id":        "MERC_AWS_ACCESS_KEY_ID",
+		"aws.secret_access_key":    "MERC_AWS_SECRET_ACCESS_KEY",
+		"aws.region":               "MERC_AWS_REGION",
+		"aws.s3_bucket":            "MERC_AWS_S3_BUCKET",
 	}
 
 	for key, env := range envBindings {
