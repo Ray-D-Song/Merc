@@ -17,7 +17,7 @@ function RootRedirect() {
   const location = useLocation()
 
   useEffect(() => {
-    location.route('/home', true)
+    location.route('/server', true)
   }, [location])
 
   return null

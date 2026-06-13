@@ -33,7 +33,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
   const filteredNav = useMemo(() => filterNavRoutes(navRoute.children, isAdmin), [navRoute.children, isAdmin])
   const breadcrumbs = getBreadcrumbs(location.path)
-  const shouldShowHomeLink = location.path !== '/home'
+  const shouldShowHomeLink = location.path !== '/server'
 
   const handleLogout = async () => {
     await logout()
@@ -81,7 +81,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       <main className="min-h-svh min-w-0 flex-1 bg-kumo-canvas">
         <header className="sticky top-0 z-10 flex h-[58px] items-center justify-between gap-3 border-b border-kumo-line bg-kumo-canvas/90 px-5 backdrop-blur md:px-8">
           <Breadcrumbs size="sm" className="min-w-0">
-            {shouldShowHomeLink ? <Breadcrumbs.Link href="/home">首页</Breadcrumbs.Link> : <></>}
+            {shouldShowHomeLink ? <Breadcrumbs.Link href="/server">服务器</Breadcrumbs.Link> : <></>}
             {breadcrumbs.map((item, index) => (
               <span key={item.path} className="contents">
                 {shouldShowHomeLink || index > 0 ? <Breadcrumbs.Separator /> : <></>}

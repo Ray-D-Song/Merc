@@ -4,6 +4,10 @@ import type { Optional } from '@/utils/types'
 export interface Project {
   id: number
   name: string
+  provider: string
+  repositoryUrl: string
+  owner: string
+  repo: string
   description: string
   status: number
   createrId: number
@@ -15,12 +19,14 @@ export interface Project {
 }
 
 export interface CreateProjectRequest {
-  name: string
+  repositoryUrl: string
+  name?: string
   description?: string
 }
 
 export interface UpdateProjectRequest {
   id: number
+  repositoryUrl?: string
   name: string
   description?: string
   status?: number

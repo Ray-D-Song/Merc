@@ -5,6 +5,7 @@ export type ProjectFormState = CreateProjectRequest & {
 }
 
 export const defaultProjectForm: ProjectFormState = {
+  repositoryUrl: '',
   name: '',
   description: '',
 }

@@ -4,32 +4,22 @@ import { RouterProvider } from './contexts/router-context'
 import { defineRouter } from './utils/router'
 import { FeedbackProvider, appToastManager } from './contexts/feedback-context'
 import GlobalErrorBoundary from './components/global-error-boundary'
-import AdminSwitcher from './components/admin-switcher'
-import { FolderIcon, HouseIcon, UsersIcon } from '@phosphor-icons/react'
+import { FolderIcon, HardDrivesIcon, PlayCircleIcon } from '@phosphor-icons/react'
 
 const Login = lazy(() => import('./pages/login'))
-const User = lazy(() => import('./pages/admin/user'))
 const Project = lazy(() => import('./pages/project'))
+const Server = lazy(() => import('./pages/server'))
+const Runner = lazy(() => import('./pages/runner'))
 const Forbidden = lazy(() => import('./pages/403'))
 const NotFound = lazy(() => import('./pages/404'))
-const AdminDashboard = lazy(() => import('./pages/admin/dashboard'))
-const MemberDashboard = lazy(() => import('./pages/member/dashboard'))
 
 const { AppRoutes, getBreadcrumbs, getMetaByPath, navRoute } = defineRouter([
   {
-    path: '/home',
-    component: AdminSwitcher(AdminDashboard, MemberDashboard),
+    path: '/server',
+    component: Server,
     meta: {
-      title: '首页',
-      icon: <HouseIcon size={18} />
-    }
-  },
-  {
-    path: '/admin/user',
-    component: User,
-    meta: {
-      title: '用户管理',
-      icon: <UsersIcon size={18} />,
+      title: '服务器',
+      icon: <HardDrivesIcon size={18} />,
       auth: 'admin'
     }
   },
@@ -39,6 +29,15 @@ const { AppRoutes, getBreadcrumbs, getMetaByPath, navRoute } = defineRouter([
     meta: {
       title: '项目管理',
       icon: <FolderIcon size={18} />,
+    }
+  },
+  {
+    path: '/runner',
+    component: Runner,
+    meta: {
+      title: 'Runner',
+      icon: <PlayCircleIcon size={18} />,
+      auth: 'admin'
     }
   },
 ], [

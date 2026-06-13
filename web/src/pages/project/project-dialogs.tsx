@@ -39,11 +39,18 @@ export function ProjectDialogs({
   const renderProjectForm = (showStatus: boolean) => (
     <>
       <Input
-        label={t('projects.form.name')}
+        label="GitHub 仓库地址"
         required
+        maxLength={500}
+        value={formState.repositoryUrl}
+        placeholder="https://github.com/owner/repo"
+        onChange={(event) => setFormState(prev => ({ ...prev, repositoryUrl: event.currentTarget.value }))}
+      />
+      <Input
+        label={t('projects.form.name')}
         maxLength={255}
-        value={formState.name}
-        placeholder={t('projects.form.namePlaceholder')}
+        value={formState.name || ''}
+        placeholder="留空则使用仓库名"
         onChange={(event) => setFormState(prev => ({ ...prev, name: event.currentTarget.value }))}
       />
       <Textarea

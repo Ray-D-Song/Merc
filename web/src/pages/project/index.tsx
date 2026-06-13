@@ -8,14 +8,14 @@ import { useDataTable } from '@/hooks/use-data-table'
 import { projectsService, type Project, type CreateProjectRequest, type UpdateProjectRequest } from '@/services/projects'
 import { useAuth } from '@/hooks/use-auth'
 import { useMessage } from '@/contexts/feedback-context'
-import { useNavigate } from '@/hooks/use-navigate'
 import { formatDateTime } from '@/utils/date'
 import { ProjectDialogs } from './project-dialogs'
 import { defaultProjectForm, type ProjectFormState } from './project-form'
 
 function toCreateRequest(form: ProjectFormState): CreateProjectRequest {
   return {
-    name: form.name,
+    repositoryUrl: form.repositoryUrl,
+    name: form.name || undefined,
     description: form.description || undefined,
   }
 }
@@ -23,7 +23,8 @@ function toCreateRequest(form: ProjectFormState): CreateProjectRequest {
 function toUpdateRequest(form: ProjectFormState, id: number): UpdateProjectRequest {
   return {
     id,
-    name: form.name,
+    repositoryUrl: form.repositoryUrl || undefined,
+    name: form.name || '',
     description: form.description || undefined,
     status: form.status,
   }
@@ -33,7 +34,6 @@ export default function ProjectPage() {
   const { t } = useTranslation()
   const message = useMessage()
   const { isAdmin } = useAuth()
-  const navigate = useNavigate()
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [deleteProject, setDeleteProject] = useState<Project | null>(null)
@@ -67,6 +67,7 @@ export default function ProjectPage() {
   const openEditModal = (record: Project) => {
     setEditingProject(record)
     setFormState({
+      repositoryUrl: record.repositoryUrl,
       name: record.name,
       description: record.description || '',
       status: record.status,
@@ -123,9 +124,9 @@ export default function ProjectPage() {
       render: (record) => record.name,
     },
     {
-      key: 'description',
-      title: t('projects.columns.description'),
-      render: (record) => record.description || '-',
+      key: 'repositoryUrl',
+      title: 'GitHub 仓库',
+      render: (record) => record.repositoryUrl || '-',
     },
     {
       key: 'status',
@@ -161,9 +162,6 @@ export default function ProjectPage() {
       title: t('projects.columns.actions'),
       render: (record) => (
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="ghost" onClick={() => navigate(`/project/detail?id=${record.id}`)}>
-            {t('projects.actions.view')}
-          </Button>
           {isAdmin() && (
             <>
               <Button type="button" size="sm" variant="ghost" onClick={() => openEditModal(record)}>
