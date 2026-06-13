@@ -155,7 +155,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("agent.data_dir", "./merc-agent")
 	v.SetDefault("agent.heartbeat_interval", 15*time.Second)
 	v.SetDefault("agent.poll_interval", 5*time.Second)
-	v.SetDefault("runner.default_version", "2.329.0")
+	v.SetDefault("runner.default_version", "latest")
 	v.SetDefault("aws.region", "us-east-1")
 }
 

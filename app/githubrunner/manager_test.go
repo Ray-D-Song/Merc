@@ -2,6 +2,9 @@ package githubrunner
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -67,6 +70,38 @@ func TestManagerExecuteCreateTaskConfiguresAndStartsRunner(t *testing.T) {
 	}
 	if fake.startDir != installDir {
 		t.Fatalf("start dir = %s, want %s", fake.startDir, installDir)
+	}
+}
+
+func TestManagerResolveVersionUsesLatestRelease(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/latest" {
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+		_, _ = fmt.Fprint(w, `{"tag_name":"v2.400.1"}`)
+	}))
+	defer server.Close()
+
+	manager := NewManager(t.TempDir(), "latest", zap.NewNop())
+	manager.LatestReleaseURL = server.URL + "/latest"
+
+	version, err := manager.resolveVersion(context.Background())
+	if err != nil {
+		t.Fatalf("resolveVersion() error = %v", err)
+	}
+	if version != "2.400.1" {
+		t.Fatalf("resolveVersion() = %s, want 2.400.1", version)
+	}
+}
+
+func TestManagerResolveVersionAllowsPinnedVersion(t *testing.T) {
+	manager := NewManager(t.TempDir(), "v2.329.0", zap.NewNop())
+	version, err := manager.resolveVersion(context.Background())
+	if err != nil {
+		t.Fatalf("resolveVersion() error = %v", err)
+	}
+	if version != "2.329.0" {
+		t.Fatalf("resolveVersion() = %s, want 2.329.0", version)
 	}
 }
 

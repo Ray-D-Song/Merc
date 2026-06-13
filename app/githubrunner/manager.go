@@ -47,11 +47,12 @@ func (r ExecCommandRunner) Start(ctx context.Context, dir string, name string, a
 }
 
 type Manager struct {
-	DataDir string
-	Version string
-	Runner  CommandRunner
-	Logger  *zap.Logger
-	Client  *http.Client
+	DataDir          string
+	Version          string
+	Runner           CommandRunner
+	Logger           *zap.Logger
+	Client           *http.Client
+	LatestReleaseURL string
 }
 
 type createPayload struct {
@@ -64,14 +65,15 @@ type createPayload struct {
 
 func NewManager(dataDir, version string, logger *zap.Logger) *Manager {
 	if version == "" {
-		version = "2.329.0"
+		version = "latest"
 	}
 	return &Manager{
-		DataDir: dataDir,
-		Version: version,
-		Runner:  ExecCommandRunner{},
-		Logger:  logger.Named("githubrunner"),
-		Client:  &http.Client{Timeout: 10 * time.Minute},
+		DataDir:          dataDir,
+		Version:          version,
+		Runner:           ExecCommandRunner{},
+		Logger:           logger.Named("githubrunner"),
+		Client:           &http.Client{Timeout: 10 * time.Minute},
+		LatestReleaseURL: "https://api.github.com/repos/actions/runner/releases/latest",
 	}
 }
 
@@ -196,14 +198,53 @@ func (m *Manager) ensureInstalled(ctx context.Context, installDir string) error 
 	if fileExists(filepath.Join(installDir, configScript())) {
 		return nil
 	}
-	archivePath := filepath.Join(installDir, runnerArchiveName(m.Version))
-	if err := m.download(ctx, runnerDownloadURL(m.Version), archivePath); err != nil {
+	version, err := m.resolveVersion(ctx)
+	if err != nil {
+		return err
+	}
+	archivePath := filepath.Join(installDir, runnerArchiveName(version))
+	if err := m.download(ctx, runnerDownloadURL(version), archivePath); err != nil {
 		return err
 	}
 	if strings.HasSuffix(archivePath, ".zip") {
 		return unzip(archivePath, installDir)
 	}
 	return untargz(archivePath, installDir)
+}
+
+func (m *Manager) resolveVersion(ctx context.Context) (string, error) {
+	version := strings.TrimSpace(m.Version)
+	if version == "" || strings.EqualFold(version, "latest") {
+		return m.latestRunnerVersion(ctx)
+	}
+	return strings.TrimPrefix(version, "v"), nil
+}
+
+func (m *Manager) latestRunnerVersion(ctx context.Context) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, m.LatestReleaseURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("create latest runner release request: %w", err)
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	resp, err := m.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("fetch latest runner release: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("fetch latest runner release: unexpected HTTP %d", resp.StatusCode)
+	}
+	var release struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return "", fmt.Errorf("decode latest runner release: %w", err)
+	}
+	version := strings.TrimPrefix(strings.TrimSpace(release.TagName), "v")
+	if version == "" {
+		return "", fmt.Errorf("latest runner release did not include tag_name")
+	}
+	return version, nil
 }
 
 func (m *Manager) download(ctx context.Context, url, target string) error {
