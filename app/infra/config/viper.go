@@ -17,6 +17,9 @@ type AppConfig struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Session  SessionConfig  `mapstructure:"session"`
+	Node     NodeConfig     `mapstructure:"node"`
+	Agent    AgentConfig    `mapstructure:"agent"`
+	Runner   RunnerConfig   `mapstructure:"runner"`
 	AWS      AWSConfig      `mapstructure:"aws"`
 }
 
@@ -42,6 +45,24 @@ type SessionConfig struct {
 	MaxAgeMS       int    `mapstructure:"max_age"`
 	CookieSecure   bool   `mapstructure:"cookie_secure"`
 	CookieSameSite string `mapstructure:"cookie_same_site"`
+}
+
+type NodeConfig struct {
+	Roles   []string `mapstructure:"roles"`
+	Name    string   `mapstructure:"name"`
+	NodeKey string   `mapstructure:"node_key"`
+}
+
+type AgentConfig struct {
+	ServerURL         string        `mapstructure:"server_url"`
+	Token             string        `mapstructure:"token"`
+	DataDir           string        `mapstructure:"data_dir"`
+	HeartbeatInterval time.Duration `mapstructure:"heartbeat_interval"`
+	PollInterval      time.Duration `mapstructure:"poll_interval"`
+}
+
+type RunnerConfig struct {
+	DefaultVersion string `mapstructure:"default_version"`
 }
 
 // AWSConfig describes the AWS credentials defined in .env.example.
@@ -130,6 +151,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("session.max_age", int((14*time.Hour*24)/time.Millisecond))
 	v.SetDefault("session.cookie_secure", false)
 	v.SetDefault("session.cookie_same_site", "lax")
+	v.SetDefault("node.roles", []string{"server"})
+	v.SetDefault("agent.data_dir", "./merc-agent")
+	v.SetDefault("agent.heartbeat_interval", 15*time.Second)
+	v.SetDefault("agent.poll_interval", 5*time.Second)
+	v.SetDefault("runner.default_version", "2.329.0")
 	v.SetDefault("aws.region", "us-east-1")
 }
 
@@ -144,6 +170,14 @@ func bindEnvVariables(v *viper.Viper) error {
 		"session.max_age":          "SESSION_MAX_AGE",
 		"session.cookie_secure":    "SESSION_COOKIE_SECURE",
 		"session.cookie_same_site": "SESSION_COOKIE_SAME_SITE",
+		"node.name":                "NODE_NAME",
+		"node.node_key":            "NODE_KEY",
+		"agent.server_url":         "AGENT_SERVER_URL",
+		"agent.token":              "AGENT_TOKEN",
+		"agent.data_dir":           "AGENT_DATA_DIR",
+		"agent.heartbeat_interval": "AGENT_HEARTBEAT_INTERVAL",
+		"agent.poll_interval":      "AGENT_POLL_INTERVAL",
+		"runner.default_version":   "RUNNER_DEFAULT_VERSION",
 		"aws.access_key_id":        "AWS_ACCESS_KEY_ID",
 		"aws.secret_access_key":    "AWS_SECRET_ACCESS_KEY",
 		"aws.region":               "AWS_REGION",

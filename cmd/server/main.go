@@ -3,12 +3,17 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/ray-d-song/merc/app/agent"
 	v1 "github.com/ray-d-song/merc/app/api/v1"
 	"github.com/ray-d-song/merc/app/cron"
 	"github.com/ray-d-song/merc/app/infra/config"
@@ -23,7 +28,20 @@ import (
 )
 
 func main() {
-	app := fx.New(
+	switch command := firstArg(); command {
+	case "", "server":
+		runServer(false)
+	case "agent":
+		runAgentOnly(os.Args[2:])
+	case "start":
+		runStart(os.Args[2:])
+	default:
+		runServer(false)
+	}
+}
+
+func runServer(enableAgent bool) {
+	options := []fx.Option{
 		config.Module,
 		fx.Provide(
 			newRouter,
@@ -43,6 +61,7 @@ func main() {
 			v1.NewMercHandler,
 			v1.NewUserHanlder,
 			v1.NewProjectHandler,
+			agent.NewRuntime,
 			cron.NewCron,
 		),
 		fx.Invoke(
@@ -51,9 +70,69 @@ func main() {
 			runHTTPServer,
 			startCron,
 		),
-	)
+	}
+	if enableAgent {
+		options = append(options, fx.Invoke(startAgentRuntime))
+	}
 
+	app := fx.New(options...)
 	app.Run()
+}
+
+func runStart(args []string) {
+	flags := flag.NewFlagSet("start", flag.ExitOnError)
+	enableAgent := flags.Bool("agent", false, "run a worker agent in the same process")
+	serverURL := flags.String("server-url", "", "control node URL for the local agent")
+	token := flags.String("token", "", "agent join token")
+	_ = flags.Parse(args)
+	applyAgentFlagOverrides(*serverURL, *token)
+	runServer(*enableAgent)
+}
+
+func runAgentOnly(args []string) {
+	flags := flag.NewFlagSet("agent", flag.ExitOnError)
+	serverURL := flags.String("server-url", "", "control node URL")
+	token := flags.String("token", "", "agent join token")
+	dataDir := flags.String("data-dir", "", "agent data directory")
+	_ = flags.Parse(args)
+	applyAgentFlagOverrides(*serverURL, *token)
+	if *dataDir != "" {
+		_ = os.Setenv("AGENT_DATA_DIR", *dataDir)
+	}
+
+	v, err := config.NewViper()
+	if err != nil {
+		panic(err)
+	}
+	cfg, err := config.NewAppConfig(v)
+	if err != nil {
+		panic(err)
+	}
+	logger, err := config.NewLogger(cfg)
+	if err != nil {
+		panic(err)
+	}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := agent.NewRuntime(cfg, logger).Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		logger.Fatal("agent stopped", zap.Error(err))
+	}
+}
+
+func firstArg() string {
+	if len(os.Args) < 2 {
+		return ""
+	}
+	return os.Args[1]
+}
+
+func applyAgentFlagOverrides(serverURL, token string) {
+	if serverURL != "" {
+		_ = os.Setenv("AGENT_SERVER_URL", serverURL)
+	}
+	if token != "" {
+		_ = os.Setenv("AGENT_TOKEN", token)
+	}
 }
 
 func newRouter(cfg *config.AppConfig) chi.Router {
@@ -159,4 +238,26 @@ func runHTTPServer(lc fx.Lifecycle, logger *zap.Logger, cfg *config.AppConfig, r
 
 func startCron(lc fx.Lifecycle, cron *cron.Cron) {
 	cron.Register(lc)
+}
+
+func startAgentRuntime(lc fx.Lifecycle, runtime *agent.Runtime, logger *zap.Logger) {
+	var cancel context.CancelFunc
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			agentCtx, stop := context.WithCancel(context.Background())
+			cancel = stop
+			go func() {
+				if err := runtime.Run(agentCtx); err != nil && !errors.Is(err, context.Canceled) {
+					logger.Error("agent runtime stopped", zap.Error(err))
+				}
+			}()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			if cancel != nil {
+				cancel()
+			}
+			return nil
+		},
+	})
 }
