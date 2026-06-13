@@ -136,8 +136,9 @@ func (m *Manager) create(ctx context.Context, task dto.RunnerTaskResp) (dto.Repo
 		args = append(args, "--labels", payload.Labels)
 	}
 	output, err := m.Runner.Run(ctx, installDir, configScript(), args...)
+	safeOutput := redactValue(string(output), payload.RegistrationToken)
 	if err != nil {
-		return dto.ReportRunnerTaskReq{}, fmt.Errorf("configure runner: %w: %s", err, service.RedactSecrets(string(output)))
+		return dto.ReportRunnerTaskReq{}, fmt.Errorf("configure runner: %w: %s", err, safeOutput)
 	}
 
 	report, err := m.start(ctx, task.RunnerID)
@@ -145,7 +146,7 @@ func (m *Manager) create(ctx context.Context, task dto.RunnerTaskResp) (dto.Repo
 		return report, err
 	}
 	report.ResultJSON = fmt.Sprintf(`{"installDir":%q}`, installDir)
-	report.LogSummary = service.RedactSecrets(string(output))
+	report.LogSummary = safeOutput
 	return report, nil
 }
 
@@ -272,6 +273,14 @@ func runScript() string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func redactValue(value, secret string) string {
+	value = service.RedactSecrets(value)
+	if secret == "" {
+		return value
+	}
+	return strings.ReplaceAll(value, secret, "[redacted]")
 }
 
 func unzip(src, dest string) error {
