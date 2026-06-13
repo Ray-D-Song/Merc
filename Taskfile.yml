@@ -44,14 +44,14 @@ tasks:
   server:build:
     desc: Build the Go server binary
     aliases: [server-build]
-    deps: [build:dir]
+    deps: [build:dir, web:build]
     cmds:
       - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}{{exeExt}} {{.CMD_DIR}}
 
   server:build:static:
     desc: 'Build a static cgo server binary with Zig. Usage: task server:build:static TARGET=linux-amd64'
     aliases: [server-build-static]
-    deps: [build:dir]
+    deps: [build:dir, web:build]
     requires:
       vars: [TARGET]
     vars:
@@ -97,7 +97,7 @@ tasks:
   server:build:darwin:
     desc: 'Build a dynamically linked macOS cgo server binary. Usage: task server:build:darwin TARGET=darwin-arm64'
     aliases: [server-build-darwin]
-    deps: [build:dir]
+    deps: [build:dir, web:build]
     requires:
       vars: [TARGET]
     vars:

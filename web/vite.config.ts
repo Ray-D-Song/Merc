@@ -30,7 +30,7 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2015',
+    target: 'esnext',
     outDir: '../app/infra/static/web-dist',
     minify: 'oxc',
     emptyOutDir: true,
