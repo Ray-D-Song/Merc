@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Badge } from '@cloudflare/kumo/components/badge'
 import { Button } from '@cloudflare/kumo/components/button'
 import { CopyIcon, PlusIcon } from '@phosphor-icons/react'
@@ -25,6 +25,15 @@ export default function ServerPage() {
     getErrorMessage: useCallback(() => '获取服务器列表失败', []),
     onError: useCallback(() => message.error('获取服务器列表失败'), [message]),
   })
+  const { reload: reloadServers } = serverTable
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      reloadServers()
+    }, 5000)
+
+    return () => window.clearInterval(timer)
+  }, [reloadServers])
 
   const createJoinCommand = async () => {
     const response = await serversService.createAgentToken(`agent-${Date.now()}`)
