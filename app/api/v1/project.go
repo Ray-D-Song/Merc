@@ -14,10 +14,11 @@ import (
 
 type ProjectHandler struct {
 	service *service.ProjectService
+	auth    *service.AuthService
 }
 
-func NewProjectHandler(svc *service.ProjectService) *ProjectHandler {
-	return &ProjectHandler{service: svc}
+func NewProjectHandler(svc *service.ProjectService, auth *service.AuthService) *ProjectHandler {
+	return &ProjectHandler{service: svc, auth: auth}
 }
 
 func (h *ProjectHandler) RegisterRoutes(r chi.Router) {
@@ -105,13 +106,12 @@ func (h *ProjectHandler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := httpx.GetUserID(r)
-	if err != nil {
-		httpx.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	userID, username, ok := currentUserIdentity(w, r, h.auth)
+	if !ok {
 		return
 	}
 
-	project, err := h.service.CreateProject(r.Context(), req, userID, "")
+	project, err := h.service.CreateProject(r.Context(), req, userID, username)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidRepositoryURL) {
 			httpx.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -135,13 +135,12 @@ func (h *ProjectHandler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := httpx.GetUserID(r)
-	if err != nil {
-		httpx.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	userID, username, ok := currentUserIdentity(w, r, h.auth)
+	if !ok {
 		return
 	}
 
-	project, err := h.service.UpdateProject(r.Context(), req, userID, "")
+	project, err := h.service.UpdateProject(r.Context(), req, userID, username)
 	if err != nil {
 		if err == service.ErrProjectNotFound {
 			httpx.WriteJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})

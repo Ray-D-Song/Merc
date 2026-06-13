@@ -14,10 +14,11 @@ import (
 
 type MercHandler struct {
 	service *service.MercService
+	auth    *service.AuthService
 }
 
-func NewMercHandler(svc *service.MercService) *MercHandler {
-	return &MercHandler{service: svc}
+func NewMercHandler(svc *service.MercService, auth *service.AuthService) *MercHandler {
+	return &MercHandler{service: svc, auth: auth}
 }
 
 func (h *MercHandler) RegisterServerNodeRoutes(r chi.Router) {
@@ -108,12 +109,11 @@ func (h *MercHandler) handleCreateAgentToken(w http.ResponseWriter, r *http.Requ
 	if !bindAndValidate(w, r, &req) {
 		return
 	}
-	userID, err := httpx.GetUserID(r)
-	if err != nil {
-		httpx.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	userID, username, ok := currentUserIdentity(w, r, h.auth)
+	if !ok {
 		return
 	}
-	token, plain, err := h.service.CreateAgentToken(r.Context(), req, userID, "")
+	token, plain, err := h.service.CreateAgentToken(r.Context(), req, userID, username)
 	if err != nil {
 		httpx.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to create agent token"})
 		return
@@ -205,12 +205,11 @@ func (h *MercHandler) handleCreateRunner(w http.ResponseWriter, r *http.Request)
 	if !bindAndValidate(w, r, &req) {
 		return
 	}
-	userID, err := httpx.GetUserID(r)
-	if err != nil {
-		httpx.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	userID, username, ok := currentUserIdentity(w, r, h.auth)
+	if !ok {
 		return
 	}
-	runner, err := h.service.CreateRunner(r.Context(), req, userID, "")
+	runner, err := h.service.CreateRunner(r.Context(), req, userID, username)
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrProjectNotFound), errors.Is(err, service.ErrServerNodeNotFound):
