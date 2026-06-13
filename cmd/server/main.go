@@ -28,13 +28,19 @@ func main() {
 		fx.Provide(
 			newRouter,
 			newSessionStore,
+			repo.NewAgentTokenRepository,
+			repo.NewRunnerRepository,
+			repo.NewRunnerTaskRepository,
+			repo.NewServerNodeRepository,
 			repo.NewUserRepository,
 			repo.NewProjectRepository,
 			repo.NewSessionRepository,
 			service.NewAuthService,
+			service.NewMercService,
 			service.NewUserService,
 			service.NewProjectService,
 			v1.NewAuthHandler,
+			v1.NewMercHandler,
 			v1.NewUserHanlder,
 			v1.NewProjectHandler,
 			cron.NewCron,
@@ -73,6 +79,7 @@ func registerRoutes(
 	authHandler *v1.AuthHandler,
 	userHandler *v1.UserHandler,
 	projectHandler *v1.ProjectHandler,
+	mercHandler *v1.MercHandler,
 	sessionStore *store.SessionStore,
 	userRepo repo.UserRepository,
 	cfg *config.AppConfig,
@@ -81,6 +88,11 @@ func registerRoutes(
 		// Auth routes (mix of public and protected)
 		r.Route("/auth", func(r chi.Router) {
 			authHandler.RegisterRoutes(r, sessionStore, cfg.Session.Secret)
+		})
+
+		// Agent routes use bearer tokens instead of browser sessions.
+		r.Route("/agent", func(r chi.Router) {
+			mercHandler.RegisterAgentRoutes(r)
 		})
 
 		// Protected routes (require authentication)
@@ -93,6 +105,16 @@ func registerRoutes(
 					r.Use(middleware.RequireAdmin(userRepo))
 					projectHandler.RegisterAdminRoutes(r)
 				})
+			})
+			r.Route("/server", func(r chi.Router) {
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireAdmin(userRepo))
+					mercHandler.RegisterServerNodeRoutes(r)
+				})
+			})
+			r.Route("/runner", func(r chi.Router) {
+				r.Use(middleware.RequireAdmin(userRepo))
+				mercHandler.RegisterRunnerRoutes(r)
 			})
 		})
 
