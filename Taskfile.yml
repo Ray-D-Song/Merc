@@ -7,6 +7,8 @@ vars:
   WEB_DIR: ./web
   STATIC_DIR: ./app/infra/static/web-dist
   PKG_MANAGER: pnpm
+  STATIC_GO_TAGS: netgo osusergo sqlite_omit_load_extension
+  STATIC_LDFLAGS: -s -w -linkmode external -extldflags "-static"
 
 tasks:
   default:
@@ -45,6 +47,102 @@ tasks:
     deps: [build:dir]
     cmds:
       - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}{{exeExt}} {{.CMD_DIR}}
+
+  server:build:static:
+    desc: 'Build a static cgo server binary with Zig. Usage: task server:build:static TARGET=linux-amd64'
+    aliases: [server-build-static]
+    deps: [build:dir]
+    requires:
+      vars: [TARGET]
+    vars:
+      OUT:
+        sh: |
+          case "{{.TARGET}}" in
+            windows-*) printf "{{.BUILD_DIR}}/{{.BINARY_NAME}}-{{.TARGET}}.exe" ;;
+            *) printf "{{.BUILD_DIR}}/{{.BINARY_NAME}}-{{.TARGET}}" ;;
+          esac
+      GOOS:
+        sh: printf "{{.TARGET}}" | cut -d- -f1
+      GOARCH:
+        sh: printf "{{.TARGET}}" | cut -d- -f2
+      ZIG_TARGET:
+        sh: |
+          case "{{.TARGET}}" in
+            linux-amd64) printf "x86_64-linux-musl" ;;
+            linux-arm64) printf "aarch64-linux-musl" ;;
+            windows-amd64) printf "x86_64-windows-gnu" ;;
+            windows-arm64) printf "aarch64-windows-gnu" ;;
+            *) echo "unsupported TARGET={{.TARGET}}" >&2; exit 1 ;;
+          esac
+      STATIC_FLAGS:
+        sh: printf '%s' '{{.STATIC_LDFLAGS}}'
+    env:
+      CGO_ENABLED: '1'
+      GOOS: '{{.GOOS}}'
+      GOARCH: '{{.GOARCH}}'
+      CC: 'zig cc -target {{.ZIG_TARGET}}'
+      CXX: 'zig c++ -target {{.ZIG_TARGET}}'
+    cmds:
+      - go build -trimpath -tags '{{.STATIC_GO_TAGS}}' -ldflags '{{.STATIC_FLAGS}}' -o '{{.OUT}}' {{.CMD_DIR}}
+
+  server:build:static:all:
+    desc: Build static cgo server binaries for Linux and Windows targets with Zig
+    aliases: [server-build-static-all]
+    cmds:
+      - task server:build:static TARGET=linux-amd64
+      - task server:build:static TARGET=linux-arm64
+      - task server:build:static TARGET=windows-amd64
+      - task server:build:static TARGET=windows-arm64
+
+  server:build:darwin:
+    desc: 'Build a dynamically linked macOS cgo server binary. Usage: task server:build:darwin TARGET=darwin-arm64'
+    aliases: [server-build-darwin]
+    deps: [build:dir]
+    requires:
+      vars: [TARGET]
+    vars:
+      OUT:
+        sh: printf "{{.BUILD_DIR}}/{{.BINARY_NAME}}-{{.TARGET}}"
+      GOARCH:
+        sh: |
+          case "{{.TARGET}}" in
+            darwin-amd64) printf "amd64" ;;
+            darwin-arm64) printf "arm64" ;;
+            *) echo "unsupported TARGET={{.TARGET}}" >&2; exit 1 ;;
+          esac
+      CLANG_ARCH:
+        sh: |
+          case "{{.TARGET}}" in
+            darwin-amd64) printf "x86_64" ;;
+            darwin-arm64) printf "arm64" ;;
+            *) echo "unsupported TARGET={{.TARGET}}" >&2; exit 1 ;;
+          esac
+      DARWIN_CGO_FLAGS:
+        sh: printf '%s' "-arch {{.CLANG_ARCH}} -isysroot $(xcrun --show-sdk-path)"
+    env:
+      CGO_ENABLED: '1'
+      GOOS: darwin
+      GOARCH: '{{.GOARCH}}'
+      CC: clang
+      CXX: clang++
+      CGO_CFLAGS: '{{.DARWIN_CGO_FLAGS}}'
+      CGO_LDFLAGS: '{{.DARWIN_CGO_FLAGS}}'
+    cmds:
+      - go build -trimpath -tags 'netgo osusergo sqlite_omit_load_extension' -ldflags '-s -w -linkmode external' -o '{{.OUT}}' {{.CMD_DIR}}
+
+  server:build:darwin:all:
+    desc: Build dynamically linked macOS cgo server binaries
+    aliases: [server-build-darwin-all]
+    cmds:
+      - task server:build:darwin TARGET=darwin-amd64
+      - task server:build:darwin TARGET=darwin-arm64
+
+  server:build:cross:all:
+    desc: Build all supported platform binaries
+    aliases: [server-build-cross-all]
+    cmds:
+      - task server:build:static:all
+      - task server:build:darwin:all
 
   run:
     desc: Run the Go server in development mode
