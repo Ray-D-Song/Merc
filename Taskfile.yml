@@ -1,0 +1,157 @@
+version: '3'
+
+vars:
+  BINARY_NAME: server
+  BUILD_DIR: ./build
+  CMD_DIR: ./cmd/server
+  WEB_DIR: ./web
+  STATIC_DIR: ./app/infra/static/web-dist
+  PKG_MANAGER: pnpm
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Build web assets and the Go server
+    aliases: [build-all]
+    deps: [web:build, server:build]
+    cmds:
+      - echo "Full build complete."
+
+  install:
+    desc: Install Go and web dependencies
+    deps: [deps, web:install]
+    cmds:
+      - echo "All dependencies installed."
+
+  clean:all:
+    desc: Clean all build artifacts
+    aliases: [clean-all]
+    deps: [clean, web:clean]
+    cmds:
+      - echo "All artifacts cleaned."
+
+  dev:
+    desc: Run the Go API and Vite dev server
+    deps: [run, web:dev]
+
+  server:build:
+    desc: Build the Go server binary
+    aliases: [server-build]
+    deps: [build:dir]
+    cmds:
+      - go build -ldflags="-s -w" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}{{exeExt}} {{.CMD_DIR}}
+
+  run:
+    desc: Run the Go server in development mode
+    deps: [static:dev]
+    env:
+      DEBUG: 'true'
+    cmds:
+      - go run {{.CMD_DIR}}/main.go
+
+  run:prod:
+    desc: Build and run the Go server in production mode
+    aliases: [run-prod]
+    deps: [server:build]
+    cmds:
+      - cmd: $env:DEBUG='false'; $env:ENV='production'; {{.BUILD_DIR}}\{{.BINARY_NAME}}.exe
+        platforms: [windows]
+      - cmd: DEBUG=false ENV=production {{.BUILD_DIR}}/{{.BINARY_NAME}}
+        platforms: [darwin, linux]
+
+  test:
+    desc: Run Go tests
+    cmds:
+      - go test -v ./...
+
+  fmt:
+    desc: Format Go code
+    cmds:
+      - go fmt ./...
+
+  deps:
+    desc: Download and tidy Go dependencies
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  clean:
+    desc: Clean Go build artifacts
+    cmds:
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -LiteralPath '{{.BUILD_DIR}}' -Recurse -Force -ErrorAction SilentlyContinue"
+        platforms: [windows]
+      - cmd: rm -rf {{.BUILD_DIR}}
+        platforms: [darwin, linux]
+
+  web:install:
+    desc: Install web dependencies
+    aliases: [web-install]
+    dir: '{{.WEB_DIR}}'
+    cmds:
+      - '{{.PKG_MANAGER}} install'
+
+  web:dev:
+    desc: Run the Vite development server
+    aliases: [web-dev]
+    dir: '{{.WEB_DIR}}'
+    cmds:
+      - '{{.PKG_MANAGER}} run dev'
+
+  web:build:
+    desc: Build web assets for production
+    aliases: [web-build]
+    dir: '{{.WEB_DIR}}'
+    cmds:
+      - '{{.PKG_MANAGER}} run build'
+
+  web:clean:
+    desc: Clean web build artifacts
+    aliases: [web-clean]
+    cmds:
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -LiteralPath '{{.STATIC_DIR}}' -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath '{{.WEB_DIR}}/stats.html' -Force -ErrorAction SilentlyContinue"
+        platforms: [windows]
+      - cmd: rm -rf {{.STATIC_DIR}} {{.WEB_DIR}}/stats.html
+        platforms: [darwin, linux]
+
+  web:lint:
+    desc: Lint web code
+    aliases: [web-lint]
+    dir: '{{.WEB_DIR}}'
+    cmds:
+      - '{{.PKG_MANAGER}} run lint'
+
+  web:type-check:
+    desc: Type check web code
+    aliases: [web-type-check]
+    dir: '{{.WEB_DIR}}'
+    cmds:
+      - '{{.PKG_MANAGER}} run type:check'
+
+  web:check-i18n:
+    desc: Check i18n translations
+    aliases: [web-check-i18n]
+    dir: '{{.WEB_DIR}}'
+    cmds:
+      - '{{.PKG_MANAGER}} run check:i18n'
+
+  build:dir:
+    internal: true
+    cmds:
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "New-Item -ItemType Directory -Force -Path '{{.BUILD_DIR}}' | Out-Null"
+        platforms: [windows]
+      - cmd: mkdir -p {{.BUILD_DIR}}
+        platforms: [darwin, linux]
+
+  static:dev:
+    desc: Ensure embedded static assets exist for development
+    aliases: [static-dev]
+    cmds:
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "New-Item -ItemType Directory -Force -Path '{{.STATIC_DIR}}' | Out-Null; if (-not (Test-Path -LiteralPath '{{.STATIC_DIR}}/index.html')) { Set-Content -LiteralPath '{{.STATIC_DIR}}/index.html' -Value '<!doctype html><title>Template Dev</title>' -NoNewline }"
+        platforms: [windows]
+      - cmd: mkdir -p {{.STATIC_DIR}} && test -f {{.STATIC_DIR}}/index.html || printf '<!doctype html><title>Template Dev</title>' > {{.STATIC_DIR}}/index.html
+        platforms: [darwin, linux]

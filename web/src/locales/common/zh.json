@@ -1,0 +1,84 @@
+{
+  "api": {
+    "unknownError": "未知错误",
+    "responseHandlerError": "数据处理错误"
+  },
+  "common": {
+    "cancel": "取消"
+  },
+  "pagination": {
+    "navigation": "分页",
+    "firstPage": "第一页",
+    "previousPage": "上一页",
+    "nextPage": "下一页",
+    "lastPage": "最后一页",
+    "pageNumber": "页码",
+    "pageSize": "每页条数",
+    "info": "显示 {{range}}，共 {{total}} 条",
+    "perPage": "每页："
+  },
+  "error": {
+    "networkError": "网络异常",
+    "global": {
+      "title": "系统出现了意外问题",
+      "subtitle": "很抱歉，系统遇到了无法处理的错误。",
+      "reload": "重新加载页面",
+      "goHome": "返回首页"
+    },
+    "page": {
+      "title": "页面出现意外问题",
+      "subtitle": "当前页面出现了错误，请尝试以下操作来解决问题。",
+      "subtitleWithPage": "页面 \"{pageName}\" 出现了错误，请尝试以下操作来解决问题。",
+      "retry": "重试",
+      "goBack": "返回上一页",
+      "reload": "刷新页面"
+    },
+    "403": {
+      "title": "403",
+      "subtitle": "抱歉，您没有权限访问此页面。",
+      "goHome": "返回首页",
+      "goBack": "返回上一页"
+    },
+    "404": {
+      "title": "404",
+      "subtitle": "抱歉，您访问的页面不存在。",
+      "goHome": "返回首页",
+      "goBack": "返回上一页"
+    }
+  },
+  "login": {
+    "title": "登录",
+    "username": "用户名",
+    "password": "密码",
+    "usernamePlaceholder": "请输入用户名",
+    "passwordPlaceholder": "请输入密码",
+    "rememberMe": "记住我",
+    "loginButton": "登录",
+    "loggingIn": "登录中...",
+    "forgotPassword": "忘记密码？",
+    "testAccount": "",
+    "noAccount": "没有账号？去注册",
+    "validation": {
+      "usernameRequired": "用户名不能为空",
+      "usernameMinLength": "用户名至少需要3个字符",
+      "passwordRequired": "密码不能为空",
+      "passwordMinLength": "密码至少需要6个字符"
+    },
+    "errors": {
+      "loginFailed": "登录失败，请重试。"
+    }
+  },
+  "register": {
+    "title": "注册",
+    "registerButton": "注册",
+    "registering": "注册中...",
+    "hasAccount": "已有账号？去登录",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "请再次输入密码",
+    "validation": {
+      "passwordMinLength": "密码至少需要8个字符",
+      "confirmPasswordRequired": "请确认您的密码",
+      "passwordMismatch": "两次输入的密码不一致"
+    }
+  }
+}

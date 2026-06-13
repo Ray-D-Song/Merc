@@ -1,0 +1,84 @@
+{
+  "api": {
+    "unknownError": "Unknown error",
+    "responseHandlerError": "Data process error"
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "pagination": {
+    "navigation": "Pagination",
+    "firstPage": "First page",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "lastPage": "Last page",
+    "pageNumber": "Page number",
+    "pageSize": "Page size",
+    "info": "Showing {{range}} of {{total}}",
+    "perPage": "Per page:"
+  },
+  "error": {
+    "networkError": "Network error",
+    "global": {
+      "title": "System Error",
+      "subtitle": "We're sorry, the system encountered an unexpected error. ",
+      "reload": "Reload Page",
+      "goHome": "Go to Home"
+    },
+    "page": {
+      "title": "Page Error",
+      "subtitle": "The current page encountered an error. Please try the following actions to resolve the issue.",
+      "subtitleWithPage": "The page \"{pageName}\" encountered an error. Please try the following actions to resolve the issue.",
+      "retry": "Retry",
+      "goBack": "Go Back",
+      "reload": "Reload Page"
+    },
+    "403": {
+      "title": "403",
+      "subtitle": "Sorry, you are not authorized to access this page.",
+      "goHome": "Back Home",
+      "goBack": "Go Back"
+    },
+    "404": {
+      "title": "404",
+      "subtitle": "Sorry, the page you visited does not exist.",
+      "goHome": "Back Home",
+      "goBack": "Go Back"
+    }
+  },
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "loginButton": "Login",
+    "loggingIn": "Logging in...",
+    "forgotPassword": "Forgot password?",
+    "testAccount": "",
+    "noAccount": "Don't have an account? Register",
+    "validation": {
+      "usernameRequired": "Username is required",
+      "usernameMinLength": "Username must be at least 3 characters",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters"
+    },
+    "errors": {
+      "loginFailed": "Login failed. Please try again."
+    }
+  },
+  "register": {
+    "title": "Register",
+    "registerButton": "Register",
+    "registering": "Registering...",
+    "hasAccount": "Already have an account? Login",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Enter your password again",
+    "validation": {
+      "passwordMinLength": "Password must be at least 8 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordMismatch": "Passwords do not match"
+    }
+  }
+}

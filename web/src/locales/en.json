@@ -1,0 +1,116 @@
+{
+  "users": {
+    "title": "User Management",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "columns": {
+      "id": "ID",
+      "username": "Username",
+      "realname": "Real Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "roles": {
+      "admin": "Admin",
+      "user": "User"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "edit": "Edit",
+      "enable": "Enable",
+      "disable": "Disable"
+    },
+    "form": {
+      "username": "Username",
+      "usernamePlaceholder": "Enter username",
+      "usernameRequired": "Please enter username",
+      "usernameMin": "Username must be at least 3 characters",
+      "usernamePattern": "Username can only contain letters, numbers and underscores",
+      "realname": "Real Name",
+      "realnamePlaceholder": "Enter real name",
+      "realnameRequired": "Please enter real name",
+      "email": "Email",
+      "emailPlaceholder": "Enter email address",
+      "emailRequired": "Please enter email",
+      "emailInvalid": "Please enter a valid email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter password",
+      "passwordRequired": "Please enter password",
+      "passwordMin": "Password must be at least 6 characters",
+      "passwordOptional": "Leave blank to keep current password",
+      "role": "Role",
+      "rolePlaceholder": "Select role",
+      "roleRequired": "Please select role"
+    },
+    "messages": {
+      "createSuccess": "User created successfully",
+      "createFailed": "Failed to create user",
+      "updateSuccess": "User updated successfully",
+      "updateFailed": "Failed to update user",
+      "enableSuccess": "User enabled successfully",
+      "enableFailed": "Failed to enable user",
+      "disableSuccess": "User disabled successfully",
+      "disableFailed": "Failed to disable user",
+      "loadFailed": "Failed to load user list"
+    },
+    "confirm": {
+      "enableTitle": "Confirm to enable this user?",
+      "enableDescription": "After enabling, the user can access the system normally",
+      "disableTitle": "Confirm to disable this user?",
+      "disableDescription": "After disabling, the user will not be able to log in to the system"
+    }
+  },
+  "projects": {
+    "title": "Project Management",
+    "createProject": "Create Project",
+    "editProject": "Edit Project",
+    "columns": {
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "status": "Status",
+      "createrUserName": "Creator",
+      "lastUpdaterUserName": "Last Updater",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "actions": "Actions"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "submit": "Submit"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Enter project name",
+      "nameRequired": "Please enter project name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter project description",
+      "status": "Status"
+    },
+    "messages": {
+      "createSuccess": "Project created successfully",
+      "createFailed": "Failed to create project",
+      "updateSuccess": "Project updated successfully",
+      "updateFailed": "Failed to update project",
+      "deleteSuccess": "Project deleted successfully",
+      "deleteFailed": "Failed to delete project",
+      "loadFailed": "Failed to load project list"
+    },
+    "confirm": {
+      "deleteTitle": "Confirm delete this project?",
+      "deleteDescription": "This action cannot be undone"
+    }
+  }
+}
